@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late Future<Meal> futureMeal;
 
-  Future<void> fetchMeal() async {
+  Future<List<String>> fetchMeal(int menuIndex) async {
     final response = await http.get(Uri.parse(
         'https://dormitory.pknu.ac.kr/03_notice/req_getSchedule.php'));
 
@@ -28,36 +28,12 @@ class _MyAppState extends State<MyApp> {
       String data = targetElement.text.replaceAll('\t', '');
       String data2 = data.replaceAll('\n', ',');
 
-      List<String> dataBreakfast =
-          data2.substring(0, data2.indexOf('점심')).split(',,').sublist(9, 17);
-      for (var i = 0; i < dataBreakfast.length; i++) {
-        print(dataBreakfast[i]);
-      }
-
-      List<String> dataLunch =
-          data2.substring(0, data2.indexOf('저녁')).split(',,').sublist(18, 26);
-      for (var i = 0; i < dataLunch.length; i++) {
-        print(dataLunch[i]);
-      }
-
-      List<String> dataDinner = data2.substring(0).split(',,').sublist(26);
-      for (var i = 0; i < dataDinner.length; i++) {
-        print(dataDinner[i]);
-      }
-
-      //Map<String, dynamic> jsonMap = {'data': data2};
-
-      //String jsonString = json.encode(jsonMap);
-      //  print(jsonString);
+      List<String> mealTime =
+          data2.split(',,').sublist(menuIndex, menuIndex + 8);
+      return mealTime;
     } else {
       throw Exception('실패');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchMeal();
   }
 
   @override
@@ -69,6 +45,26 @@ class _MyAppState extends State<MyApp> {
           centerTitle: true,
           title: const Text('오늘 밥 뭐야?'),
         ),
+        body: FutureBuilder(
+            future: fetchMeal(9),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Column(
+                  children: [
+                    for (var meal in snapshot.data!)
+                      Text(
+                        meal,
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      )
+                  ],
+                );
+              } else {
+                throw Error();
+              }
+              //return Container();
+            }),
       ),
     );
   }
